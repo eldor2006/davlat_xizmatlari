@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DXM — Foydalanuvchilarni boshqarish tizimi</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+ --primary:#2563eb;--primary2:#1d4ed8;--dark:#0f172a;--muted:#64748b;
+ --bg:#f1f5f9;--card:#fff;--border:#e2e8f0;--green:#16a34a;
+ --red:#dc2626;--yellow:#d97706;--purple:#7c3aed;
+}
+body{font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:#172033}
+button,input,select{font:inherit}
+button{cursor:pointer;border:0}
+.app{display:flex;min-height:100vh}
+.sidebar{width:260px;background:var(--dark);color:#cbd5e1;position:fixed;left:0;top:0;bottom:0;padding:22px 14px;z-index:10}
+.brand{display:flex;align-items:center;gap:12px;color:#fff;padding:0 10px 25px;border-bottom:1px solid #243044}
+.logo{width:42px;height:42px;border-radius:11px;background:var(--primary);display:grid;place-items:center;font-weight:800;font-size:20px}
+.brand h2{font-size:15px}.brand small{color:#94a3b8}
+.nav{margin-top:22px}.nav button{width:100%;text-align:left;background:transparent;color:#94a3b8;padding:12px 13px;border-radius:9px;margin:2px 0}
+.nav button:hover,.nav button.active{background:#1e293b;color:#fff}
+.nav button span{display:inline-block;width:27px}
+.side-bottom{position:absolute;bottom:20px;left:20px;right:20px;border-top:1px solid #243044;padding-top:15px;font-size:12px;color:#64748b}
+.main{margin-left:260px;width:calc(100% - 260px)}
+.topbar{height:72px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 30px;position:sticky;top:0;z-index:5}
+.topbar h1{font-size:21px}.topbar p{font-size:12px;color:var(--muted);margin-top:3px}
+.admin{display:flex;align-items:center;gap:10px}.avatar{width:38px;height:38px;background:#dbeafe;color:var(--primary2);border-radius:50%;display:grid;place-items:center;font-weight:700}
+.content{padding:28px;max-width:1600px;margin:auto}
+.page{display:none}.page.active{display:block}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:22px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 2px 5px #0f172a08}
+.stat{display:flex;justify-content:space-between;align-items:flex-start}.stat-icon{width:45px;height:45px;border-radius:11px;background:#eff6ff;color:var(--primary);display:grid;place-items:center;font-size:20px}
+.stat h2{font-size:28px;margin:7px 0}.stat p{color:var(--muted);font-size:13px}.trend{font-size:12px;color:var(--green);margin-top:8px}
+.grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:20px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.panel{background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:20px}
+.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:17px}
+.panel-head h3{font-size:16px}.panel-head small{color:var(--muted)}
+.btn{padding:9px 14px;border-radius:8px;background:var(--primary);color:#fff;font-size:13px;font-weight:600}
+.btn:hover{background:var(--primary2)}.btn.light{background:#eff6ff;color:var(--primary)}.btn.red{background:#fee2e2;color:#b91c1c}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.input,.select{border:1px solid var(--border);background:#fff;border-radius:8px;padding:9px 11px;outline:none;min-width:170px}
+.input:focus,.select:focus{border-color:#93c5fd;box-shadow:0 0 0 3px #dbeafe}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:760px}
+th,td{padding:12px 10px;border-bottom:1px solid var(--border);text-align:left;font-size:13px}
+th{color:#64748b;background:#f8fafc;font-weight:600}tr:hover td{background:#fafcff}
+.user{display:flex;align-items:center;gap:10px}.mini{width:34px;height:34px;border-radius:9px;background:#e0e7ff;color:#4338ca;display:grid;place-items:center;font-size:12px;font-weight:700}
+.badge{display:inline-flex;padding:5px 8px;border-radius:999px;font-size:11px;font-weight:700}
+.active{background:#dcfce7;color:#15803d}.blocked{background:#fee2e2;color:#b91c1c}.pending{background:#fef3c7;color:#a16207}.info{background:#dbeafe;color:#1d4ed8}.purple{background:#ede9fe;color:#6d28d9}
+.progress{height:7px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin-top:9px}.bar{height:100%;background:var(--primary);border-radius:99px}
+.role-card{border:1px solid var(--border);border-radius:11px;padding:16px;background:#fff}.role-top{display:flex;justify-content:space-between}.role-card h4{margin-bottom:6px}.role-card p{font-size:12px;color:var(--muted);line-height:1.5}.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.chip{font-size:11px;background:#f1f5f9;padding:5px 8px;border-radius:6px;color:#475569}
+.dept{display:flex;align-items:center;gap:14px;padding:15px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px}.dept-icon{width:42px;height:42px;border-radius:10px;background:#eff6ff;color:var(--primary);display:grid;place-items:center;font-weight:700}.dept-info{flex:1}.dept-info h4{font-size:14px}.dept-info p{font-size:12px;color:var(--muted);margin-top:4px}
+.timeline{border-left:2px solid #dbeafe;margin-left:8px;padding-left:20px}.event{position:relative;margin-bottom:20px}.event:before{content:"";position:absolute;width:9px;height:9px;background:var(--primary);border-radius:50%;left:-26px;top:5px}.event h4{font-size:13px}.event p{font-size:12px;color:var(--muted);margin-top:4px}.event small{color:#94a3b8}
+.kpi{font-size:13px;color:var(--muted);display:flex;justify-content:space-between;margin:10px 0}.kpi strong{color:#172033}
+.empty{padding:35px;text-align:center;color:var(--muted)}
+.modal-bg{display:none;position:fixed;inset:0;background:#0f172a99;z-index:50;align-items:center;justify-content:center;padding:20px}.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:15px;width:min(650px,100%);max-height:90vh;overflow:auto;padding:23px}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.close{background:#f1f5f9;width:32px;height:32px;border-radius:8px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field label{font-size:12px;color:#475569;display:block;margin-bottom:6px}.field.full{grid-column:1/-1}.form-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+.toast{position:fixed;right:25px;bottom:25px;background:#0f172a;color:#fff;padding:13px 17px;border-radius:9px;display:none;z-index:100;font-size:13px}
+.toast.show{display:block}
+@media(max-width:1000px){.cards{grid-template-columns:repeat(2,1fr)}.grid2,.grid3{grid-template-columns:1fr}.sidebar{width:220px}.main{margin-left:220px;width:calc(100% - 220px)}}
+@media(max-width:700px){.sidebar{position:static;width:100%;height:auto}.side-bottom{display:none}.app{display:block}.main{margin-left:0;width:100%}.nav{display:grid;grid-template-columns:repeat(2,1fr)}.cards{grid-template-columns:1fr}.topbar{padding:0 15px}.content{padding:15px}.form{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="logo">DX</div><div><h2>Davlat xizmatlari</h2><small>Boshqaruv tizimi</small></div></div>
+  <nav class="nav">
+    <button class="active" onclick="showPage('dashboard',this)"><span>⌂</span>Dashboard</button>
+    <button onclick="showPage('users',this)"><span>👥</span>Foydalanuvchilar</button>
+    <button onclick="showPage('roles',this)"><span>🔐</span>Rollar va huquqlar</button>
+    <button onclick="showPage('departments',this)"><span>▦</span>Bo‘limlar</button>
+    <button onclick="showPage('tasks',this)"><span>✓</span>Vazifalar</button>
+    <button onclick="showPage('applications',this)"><span>▤</span>Arizalar</button>
+    <button onclick="showPage('logs',this)"><span>◷</span>Faoliyat jurnali</button>
+    <button onclick="showPage('security',this)"><span>⚙</span>Xavfsizlik</button>
+  </nav>
+  <div class="side-bottom">Tizim administratori<br><b style="color:#cbd5e1">admin@dxm.uz</b></div>
+</aside>
+
+<main class="main">
+<header class="topbar">
+  <div><h1 id="pageTitle">Dashboard</h1><p>Davlat xizmatlari markazi — foydalanuvchilarni boshqarish</p></div>
+  <div class="admin"><div><b>Qalbayev Eldor</b><small style="display:block;color:#64748b;text-align:right">Administrator</small></div><div class="avatar">QE</div></div>
+</header>
+
+<div class="content">
+
+<section id="dashboard" class="page active">
+  <div class="cards">
+    <div class="card stat"><div><p>Jami foydalanuvchilar</p><h2>48</h2><div class="trend">↑ 4 ta yangi</div></div><div class="stat-icon">👥</div></div>
+    <div class="card stat"><div><p>Faol foydalanuvchilar</p><h2>43</h2><div class="trend">89.6% faol</div></div><div class="stat-icon">✓</div></div>
+    <div class="card stat"><div><p>Ochiq arizalar</p><h2>126</h2><div class="trend">↑ 18 bugun</div></div><div class="stat-icon">▤</div></div>
+    <div class="card stat"><div><p>Rollar</p><h2>8</h2><div class="trend">35 ta huquq</div></div><div class="stat-icon">🔐</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <div class="panel-head"><div><h3>So‘nggi foydalanuvchilar</h3><small>Tizimga oxirgi qo‘shilgan xodimlar</small></div><button class="btn light" onclick="showPage('users')">Barchasi</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Foydalanuvchi</th><th>Bo‘lim</th><th>Rol</th><th>Holat</th></tr></thead><tbody id="dashUsers"></tbody></table></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div><h3>Bo‘limlar faoliyati</h3><small>Xodimlar taqsimoti</small></div></div>
+      <div class="kpi"><span>Fuqarolar bilan ishlash</span><strong>14 xodim</strong></div><div class="progress"><div class="bar" style="width:82%"></div></div>
+      <div class="kpi"><span>Hujjatlarni qayta ishlash</span><strong>9 xodim</strong></div><div class="progress"><div class="bar" style="width:58%"></div></div>
+      <div class="kpi"><span>IT bo‘limi</span><strong>5 xodim</strong></div><div class="progress"><div class="bar" style="width:34%"></div></div>
+      <div class="kpi"><span>Moliya</span><strong>7 xodim</strong></div><div class="progress"><div class="bar" style="width:44%"></div></div>
+      <div class="kpi"><span>Arxiv</span><strong>6 xodim</strong></div><div class="progress"><div class="bar" style="width:39%"></div></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <div class="panel-head"><div><h3>Oxirgi faoliyat</h3><small>Administrator nazorati</small></div></div>
+      <div class="timeline">
+        <div class="event"><h4>Yangi foydalanuvchi yaratildi</h4><p>Rasulova Mohira — Operator</p><small>Bugun, 10:42</small></div>
+        <div class="event"><h4>Rol o‘zgartirildi</h4><p>Jalilov Sardor: Operator → Bo‘lim boshlig‘i</p><small>Bugun, 09:18</small></div>
+        <div class="event"><h4>Foydalanuvchi bloklandi</h4><p>Yusupova Madina — 5 marta noto‘g‘ri parol</p><small>Kecha, 17:35</small></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div><h3>Xizmatlar statistikasi</h3><small>Joriy oy</small></div></div>
+      <div class="kpi"><span>Ariza qabul qilish</span><strong>438</strong></div>
+      <div class="kpi"><span>Ma’lumotnoma berish</span><strong>312</strong></div>
+      <div class="kpi"><span>Ro‘yxatdan o‘tkazish</span><strong>196</strong></div>
+      <div class="kpi"><span>Boshqa xizmatlar</span><strong>284</strong></div>
+    </div>
+  </div>
+</section>
+
+<section id="users" class="page">
+  <div class="panel">
+    <div class="panel-head"><div><h3>Foydalanuvchilar</h3><small>Barcha tizim foydalanuvchilarini boshqarish</small></div><button class="btn" onclick="openModal()">+ Yangi foydalanuvchi</button></div>
+    <div class="filters">
+      <input id="userSearch" class="input" placeholder="F.I.Sh yoki login bo‘yicha qidirish..." oninput="renderUsers()">
+      <select id="roleFilter" class="select" onchange="renderUsers()"><option value="">Barcha rollar</option><option>Administrator</option><option>Direktor</option><option>Bo‘lim boshlig‘i</option><option>Operator</option><option>Mutaxassis</option><option>Kassir</option><option>Arxivchi</option></select>
+      <select id="statusFilter" class="select" onchange="renderUsers()"><option value="">Barcha holatlar</option><option>Faol</option><option>Bloklangan</option><option>Ta’til</option></select>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>Foydalanuvchi</th><th>Login</th><th>Lavozim</th><th>Bo‘lim</th><th>Rol</th><th>Oxirgi kirish</th><th>Holat</th><th>Amal</th></tr></thead><tbody id="usersBody"></tbody></table></div>
+  </div>
+</section>
+
+<section id="roles" class="page">
+  <div class="panel-head"><div><h3>Rollar va huquqlar</h3><small>RBAC — Role Based Access Control</small></div></div>
+  <div class="grid3" id="rolesGrid"></div>
+</section>
+
+<section id="departments" class="page">
+  <div class="panel"><div class="panel-head"><div><h3>Tashkilot bo‘limlari</h3><small>Davlat xizmatlari markazining tashkiliy tuzilmasi</small></div></div><div id="deptList"></div></div>
+</section>
+
+<section id="tasks" class="page">
+  <div class="panel">
+    <div class="panel-head"><div><h3>Vazifalar taqsimoti</h3><small>Har bir rol uchun asosiy xizmat vazifalari</small></div></div>
+    <div class="table-wrap"><table><thead><tr><th>Rol</th><th>Asosiy vazifa</th><th>Qo‘shimcha vazifa</th><th>Mas’ul bo‘lim</th><th>Ustuvorlik</th></tr></thead><tbody id="tasksBody"></tbody></table></div>
+  </div>
+</section>
+
+<section id="applications" class="page">
+  <div class="panel">
+    <div class="panel-head"><div><h3>Fuqarolar arizalari</h3><small>Arizalarni qabul qilish va ko‘rib chiqish jarayoni</small></div><button class="btn" onclick="toast('Yangi ariza oynasi tayyor')">+ Ariza yaratish</button></div>
+    <div class="filters"><input class="input" placeholder="Ariza raqami yoki fuqaro..." oninput="filterApplications(this.value)"><select class="select" onchange="filterAppStatus(this.value)"><option value="">Barcha holatlar</option><option>Yangi</option><option>Jarayonda</option><option>Tasdiqlangan</option><option>Rad etilgan</option></select></div>
+    <div class="table-wrap"><table><thead><tr><th>Ariza №</th><th>Fuqaro</th><th>Xizmat turi</th><th>Mas’ul</th><th>Sana</th><th>Holat</th></tr></thead><tbody id="appsBody"></tbody></table></div>
+  </div>
+</section>
+
+<section id="logs" class="page">
+  <div class="panel">
+    <div class="panel-head"><div><h3>Faoliyat jurnali</h3><small>Tizimdagi barcha muhim amallar qayd etiladi</small></div><button class="btn light" onclick="toast('Jurnal eksport qilish funksiyasi')">Eksport</button></div>
+    <div class="table-wrap"><table><thead><tr><th>Sana / vaqt</th><th>Foydalanuvchi</th><th>Amal</th><th>Obyekt</th><th>IP manzil</th><th>Natija</th></tr></thead><tbody id="logsBody"></tbody></table></div>
+  </div>
+</section>
+
+<section id="security" class="page">
+  <div class="grid2">
+    <div class="panel"><div class="panel-head"><div><h3>Xavfsizlik holati</h3><small>Tizim xavfsizligi nazorati</small></div></div>
+      <div class="kpi"><span>Ikki bosqichli autentifikatsiya</span><strong class="active">Yoqilgan</strong></div>
+      <div class="kpi"><span>Faol sessiyalar</span><strong>17</strong></div>
+      <div class="kpi"><span>Bloklangan akkauntlar</span><strong>2</strong></div>
+      <div class="kpi"><span>Paroli eskirganlar</span><strong class="pending">3</strong></div>
+      <div class="kpi"><span>Oxirgi xavfsizlik tekshiruvi</span><strong>30.09.2026</strong></div>
+    </div>
+    <div class="panel"><div class="panel-head"><div><h3>Kirish siyosati</h3><small>Administrator sozlamalari</small></div></div>
+      <ul style="padding-left:18px;line-height:2;font-size:13px;color:#475569">
+        <li>Minimal parol uzunligi: <b>8 ta belgi</b></li>
+        <li>Noto‘g‘ri kirishdan keyin bloklash: <b>5 urinish</b></li>
+        <li>Avtomatik sessiya muddati: <b>30 daqiqa</b></li>
+        <li>Parolni almashtirish: <b>90 kunda</b></li>
+        <li>Administrator amallari jurnalga yoziladi</li>
+        <li>Har bir rol faqat ruxsat etilgan resurslarga kira oladi</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</div>
+</main>
+</div>
+
+<div class="modal-bg" id="modal">
+<div class="modal">
+  <div class="modal-head"><h3>Yangi foydalanuvchi qo‘shish</h3><button class="close" onclick="closeModal()">✕</button></div>
+  <form onsubmit="addUser(event)">
+    <div class="form">
+      <div class="field"><label>F.I.Sh.</label><input id="newName" class="input" required placeholder="Masalan: Karimov Jasur"></div>
+      <div class="field"><label>Login</label><input id="newLogin" class="input" required placeholder="jasur.karimov"></div>
+      <div class="field"><label>Lavozim</label><select id="newPosition" class="select"><option>Operator</option><option>Mutaxassis</option><option>Bo‘lim boshlig‘i</option><option>Kassir</option><option>Arxivchi</option></select></div>
+      <div class="field"><label>Rol</label><select id="newRole" class="select"><option>Operator</option><option>Mutaxassis</option><option>Bo‘lim boshlig‘i</option><option>Kassir</option><option>Arxivchi</option></select></div>
+      <div class="field full"><label>Bo‘lim</label><select id="newDept" class="select" style="width:100%"><option>Fuqarolar bilan ishlash bo‘limi</option><option>Hujjatlarni qayta ishlash bo‘limi</option><option>Axborot texnologiyalari bo‘limi</option><option>Moliya bo‘limi</option><option>Arxiv bo‘limi</option></select></div>
+    </div>
+    <div class="form-actions"><button type="button" class="btn light" onclick="closeModal()">Bekor qilish</button><button class="btn">Saqlash</button></div>
+  </form>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const users=[
+["1","Aliyev Akmal","akmal.aliyev","Direktor","Rahbariyat","Direktor","Bugun 08:42","Faol"],
+["2","Karimov Aziz","aziz.karimov","Administrator","IT bo‘limi","Administrator","Bugun 09:12","Faol"],
+["3","Rasulova Dilnoza","dilnoza.rasulova","Operator","Fuqarolar bilan ishlash bo‘limi","Operator","Bugun 09:30","Faol"],
+["4","Xudoyberdiyev Sardor","sardor.x","Mutaxassis","Hujjatlarni qayta ishlash bo‘limi","Mutaxassis","Bugun 09:41","Faol"],
+["5","Yusupova Madina","madina.y","Kassir","Moliya bo‘limi","Kassir","Kecha 17:35","Bloklangan"],
+["6","Jalilov Sardor","jalilov.s","Bo‘lim boshlig‘i","Fuqarolar bilan ishlash bo‘limi","Bo‘lim boshlig‘i","Bugun 08:15","Faol"],
+["7","Abdullayeva Mohira","mohira.a","Arxivchi","Arxiv bo‘limi","Arxivchi","Kecha 16:20","Faol"],
+["8","Tursunov Bekzod","bekzod.t","IT mutaxassis","IT bo‘limi","Administrator","Bugun 07:58","Faol"],
+["9","Qodirova Nilufar","nilufar.q","Operator","Fuqarolar bilan ishlash bo‘limi","Operator","Bugun 10:02","Faol"],
+["10","Raximov Otabek","otabek.r","Mutaxassis","Hujjatlarni qayta ishlash bo‘limi","Mutaxassis","Bugun 09:52","Ta’til"],
+["11","Saidova Malika","malika.s","Operator","Fuqarolar bilan ishlash bo‘limi","Operator","Bugun 08:55","Faol"],
+["12","Nazarov Diyor","diyor.n","Mutaxassis","Hujjatlarni qayta ishlash bo‘limi","Mutaxassis","Bugun 09:05","Faol"],
+["13","Ergasheva Zebo","zebo.e","Kassir","Moliya bo‘limi","Kassir","Kecha 18:02","Faol"],
+["14","Qurbonov Anvar","anvar.q","Arxivchi","Arxiv bo‘limi","Arxivchi","Kecha 15:42","Faol"],
+["15","Mamatqulova Shahnoza","shahnoza.m","Operator","Fuqarolar bilan ishlash bo‘limi","Operator","Bugun 10:15","Faol"],
+["16","Islomov Jamshid","jamshid.i","Mutaxassis","Hujjatlarni qayta ishlash bo‘limi","Mutaxassis","Bugun 08:37","Faol"],
+["17","Rahmonova Madina","madina.r","Operator","Fuqarolar bilan ishlash bo‘limi","Operator","Bugun 09:47","Faol"],
+["18","Yoqubov Farrux","farrux.y","Bo‘lim boshlig‘i","Hujjatlarni qayta ishlash bo‘limi","Bo‘lim boshlig‘i","Bugun 08:01","Faol"]
+];
+
+const roles=[
+["Administrator","Tizimni to‘liq boshqarish","Foydalanuvchilar, rollar va xavfsizlik",["Foydalanuvchi yaratish","Rol biriktirish","Huquqni o‘zgartirish","Jurnalni ko‘rish"]],
+["Direktor","Tashkilotni boshqarish","Barcha bo‘limlar",["Hisobot ko‘rish","Xodimlarni nazorat qilish","Arizalarni ko‘rish","Statistikani ko‘rish"]],
+["Bo‘lim boshlig‘i","Bo‘limni boshqarish","Tegishli bo‘lim",["Xodimlarni nazorat qilish","Arizalarni taqsimlash","Hisobot tayyorlash"]],
+["Operator","Fuqaro bilan ishlash","Fuqarolar bilan ishlash",["Fuqaro yaratish","Ariza kiritish","Ariza holatini ko‘rish"]],
+["Mutaxassis","Hujjatlarni tekshirish","Hujjatlarni qayta ishlash",["Hujjatni tekshirish","Arizani tasdiqlash","Izoh qoldirish"]],
+["Kassir","To‘lovlarni boshqarish","Moliya",["To‘lov qabul qilish","Chek yaratish","To‘lov hisobotini ko‘rish"]],
+["Arxivchi","Hujjatlarni saqlash","Arxiv",["Hujjatni arxivlash","Arxivni qidirish","Hujjatni ko‘rish"]],
+["Fuqaro","Davlat xizmatlaridan foydalanish","Tashqi foydalanuvchi",["Ariza yuborish","Ariza holatini ko‘rish","Natijani olish"]]
+];
+
+const depts=[
+["RH","Rahbariyat","Direktor, direktor o‘rinbosari","3","Tashkilot faoliyatini umumiy boshqarish va nazorat qilish."],
+["FX","Fuqarolar bilan ishlash bo‘limi","Bo‘lim boshlig‘i, operatorlar","14","Fuqarolarning murojaatlarini qabul qilish va xizmatga yo‘naltirish."],
+["HQ","Hujjatlarni qayta ishlash bo‘limi","Bo‘lim boshlig‘i, mutaxassislar","9","Arizalar va hujjatlarni tekshirish, qayta ishlash."],
+["IT","Axborot texnologiyalari bo‘limi","Administrator, IT mutaxassislar","5","Axborot tizimi, akkauntlar va texnik xavfsizlikni boshqarish."],
+["MO","Moliya bo‘limi","Bosh hisobchi, kassirlar","7","Xizmatlar bo‘yicha to‘lovlarni nazorat qilish."],
+["AR","Arxiv bo‘limi","Arxiv boshlig‘i, arxivchilar","6","Yakunlangan hujjatlarni saqlash va qidirish."]
+];
+
+const tasks=[
+["Administrator","Foydalanuvchi va rollarni boshqarish","Tizim xavfsizligini nazorat qilish","IT bo‘limi","Yuqori"],
+["Direktor","Tashkilot ishini boshqarish","Hisobotlarni tahlil qilish","Rahbariyat","Yuqori"],
+["Bo‘lim boshlig‘i","Xodimlarga vazifa taqsimlash","Arizalar bajarilishini nazorat qilish","Tegishli bo‘lim","Yuqori"],
+["Operator","Fuqaro arizasini tizimga kiritish","Hujjatlarni dastlabki qabul qilish","Fuqarolar bilan ishlash","O‘rta"],
+["Mutaxassis","Hujjatlarni tekshirish","Ariza bo‘yicha xulosa tayyorlash","Hujjatlarni qayta ishlash","Yuqori"],
+["Kassir","To‘lovni qabul qilish","Kunlik moliyaviy hisobot","Moliya","O‘rta"],
+["Arxivchi","Hujjatni arxivga joylashtirish","Arxiv bo‘yicha qidiruv","Arxiv","Past"],
+["Fuqaro","Davlat xizmatiga ariza berish","Natijani qabul qilish","Tashqi foydalanuvchi","—"]
+];
+
+const apps=[
+["DXM-2026-00124","Abdullayev Bobur","Doimiy ro‘yxatga olish","Rasulova Dilnoza","30.09.2026","Yangi"],
+["DXM-2026-00119","Karimova Dildora","Ma’lumotnoma olish","Xudoyberdiyev Sardor","30.09.2026","Jarayonda"],
+["DXM-2026-00103","Usmonov Aziz","Hujjatlarni rasmiylashtirish","Nazarov Diyor","29.09.2026","Tasdiqlangan"],
+["DXM-2026-00098","Saidova Mohira","Davlat xizmatidan foydalanish","Qodirova Nilufar","29.09.2026","Jarayonda"],
+["DXM-2026-00091","Raxmonov Jamshid","Ro‘yxatdan o‘tkazish","Islomov Jamshid","28.09.2026","Rad etilgan"],
+["DXM-2026-00087","Tursunova Zebo","Ma’lumotnoma olish","Saidova Malika","28.09.2026","Tasdiqlangan"]
+];
+
+const logs=[
+["30.09.2026 10:42","Karimov Aziz","Yaratish","Rasulova Mohira / Operator","10.10.24.17","Muvaffaqiyatli"],
+["30.09.2026 09:18","Karimov Aziz","Rol o‘zgartirish","Jalilov Sardor","10.10.24.17","Muvaffaqiyatli"],
+["30.09.2026 09:05","Rasulova Dilnoza","Ariza yaratish","DXM-2026-00124","10.10.24.31","Muvaffaqiyatli"],
+["30.09.2026 08:51","Xudoyberdiyev Sardor","Hujjatni tekshirish","DXM-2026-00103","10.10.24.44","Muvaffaqiyatli"],
+["29.09.2026 17:35","Karimov Aziz","Bloklash","Yusupova Madina","10.10.24.17","Muvaffaqiyatli"],
+["29.09.2026 16:20","Abdullayeva Mohira","Arxivlash","DOC-78431","10.10.24.52","Muvaffaqiyatli"],
+["29.09.2026 15:42","Nazarov Diyor","Kirish","Tizim","10.10.24.46","Muvaffaqiyatli"]
+];
+
+function initials(name){return name.split(" ").map(x=>x[0]).join("").slice(0,2)}
+function badge(s){
+ let c=s==="Faol"||s==="Tasdiqlangan"||s==="Muvaffaqiyatli"?"active":s==="Bloklangan"||s==="Rad etilgan"?"blocked":s==="Jarayonda"||s==="Ta’til"||s==="Yangi"?"pending":"info";
+ return `<span class="badge ${c}">${s}</span>`
+}
+function renderUsers(){
+ const q=(document.getElementById("userSearch")?.value||"").toLowerCase();
+ const role=document.getElementById("roleFilter")?.value||"";
+ const status=document.getElementById("statusFilter")?.value||"";
+ const arr=users.filter(u=>(u[1]+" "+u[2]).toLowerCase().includes(q)&&(!role||u[5]===role)&&(!status||u[7]===status));
+ document.getElementById("usersBody").innerHTML=arr.map(u=>`<tr><td><div class="user"><div class="mini">${initials(u[1])}</div><div><b>${u[1]}</b><small style="display:block;color:#94a3b8">${u[2]}</small></div></div></td><td>${u[2]}</td><td>${u[3]}</td><td>${u[4]}</td><td>${u[5]}</td><td>${u[6]}</td><td>${badge(u[7])}</td><td><button class="btn light" onclick="viewUser('${u[1]}')">Ko‘rish</button></td></tr>`).join("")||`<tr><td colspan="8" class="empty">Foydalanuvchi topilmadi</td></tr>`;
+}
+function renderDash(){document.getElementById("dashUsers").innerHTML=users.slice(0,6).map(u=>`<tr><td><div class="user"><div class="mini">${initials(u[1])}</div><b>${u[1]}</b></div></td><td>${u[4]}</td><td>${u[5]}</td><td>${badge(u[7])}</td></tr>`).join("")}
+function renderRoles(){document.getElementById("rolesGrid").innerHTML=roles.map(r=>`<div class="role-card"><div class="role-top"><h4>${r[0]}</h4><span class="badge purple">${r[3].length} huquq+</span></div><p>${r[1]}<br>Resurs: ${r[2]}</p><div class="chips">${r[3].map(x=>`<span class="chip">${x}</span>`).join("")}</div></div>`).join("")}
+function renderDepts(){document.getElementById("deptList").innerHTML=depts.map(d=>`<div class="dept"><div class="dept-icon">${d[0]}</div><div class="dept-info"><h4>${d[1]}</h4><p>${d[2]} · ${d[3]} xodim</p><p>${d[4]}</p></div><span class="badge info">${d[3]} xodim</span></div>`).join("")}
+function renderTasks(){document.getElementById("tasksBody").innerHTML=tasks.map(t=>`<tr><td><b>${t[0]}</b></td><td>${t[1]}</td><td>${t[2]}</td><td>${t[3]}</td><td>${t[4]==="Yuqori"?'<span class="badge blocked">Yuqori</span>':t[4]==="O‘rta"?'<span class="badge pending">O‘rta</span>':'<span class="badge info">'+t[4]+'</span>'}</td></tr>`).join("")}
+function renderApps(list=apps){document.getElementById("appsBody").innerHTML=list.map(a=>`<tr><td><b>${a[0]}</b></td><td>${a[1]}</td><td>${a[2]}</td><td>${a[3]}</td><td>${a[4]}</td><td>${badge(a[5])}</td></tr>`).join("")}
+function filterApplications(q){q=q.toLowerCase();renderApps(apps.filter(a=>a.join(" ").toLowerCase().includes(q)))}
+function filterAppStatus(s){renderApps(s?apps.filter(a=>a[5]===s):apps)}
+function renderLogs(){document.getElementById("logsBody").innerHTML=logs.map(l=>`<tr><td>${l[0]}</td><td><b>${l[1]}</b></td><td>${l[2]}</td><td>${l[3]}</td><td>${l[4]}</td><td>${badge(l[5])}</td></tr>`).join("")}
+function showPage(id,btn){
+ document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));document.getElementById(id).classList.add("active");
+ document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));if(btn)btn.classList.add("active");
+ const titles={dashboard:"Dashboard",users:"Foydalanuvchilar","roles":"Rollar va huquqlar",departments:"Bo‘limlar",tasks:"Vazifalar",applications:"Arizalar",logs:"Faoliyat jurnali",security:"Xavfsizlik"};
+ document.getElementById("pageTitle").textContent=titles[id];
+ window.scrollTo(0,0);
+}
+function openModal(){document.getElementById("modal").classList.add("show")}
+function closeModal(){document.getElementById("modal").classList.remove("show")}
+function addUser(e){
+ e.preventDefault();
+ const name=document.getElementById("newName").value,login=document.getElementById("newLogin").value,pos=document.getElementById("newPosition").value,role=document.getElementById("newRole").value,dept=document.getElementById("newDept").value;
+ users.unshift([String(users.length+1),name,login,pos,dept,role,"Hozir","Faol"]);
+ renderUsers();renderDash();closeModal();e.target.reset();toast("Yangi foydalanuvchi muvaffaqiyatli qo‘shildi");
+}
+function viewUser(name){const u=users.find(x=>x[1]===name);alert(`Foydalanuvchi: ${u[1]}\nLogin: ${u[2]}\nLavozim: ${u[3]}\nBo‘lim: ${u[4]}\nRol: ${u[5]}\nHolat: ${u[7]}`)}
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2500)}
+renderUsers();renderDash();renderRoles();renderDepts();renderTasks();renderApps();renderLogs();
+</script>
+</body>
+</html>
